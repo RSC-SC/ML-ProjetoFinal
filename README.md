@@ -1,60 +1,42 @@
-# Pipeline Preditivo de Risco de Crédito 💳
+# Projeto de Previsão de Risco de Crédito
 
-Este repositório contém o projeto final do módulo de **Machine Learning**, focado na construção de um pipeline preditivo completo para o setor financeiro. O objetivo é prever a inadimplência de clientes utilizando algoritmos de classificação e técnicas avançadas de pré-processamento de dados.
+Este repositório contém o desenvolvimento de um pipeline completo de Machine Learning para a classificação de risco de crédito, focado em prever a inadimplência de clientes.
 
-## 🚀 Contexto e Problema de Negócio
+## 1. Descrição do Problema de Negócio
+A concessão de crédito é uma atividade fundamental para instituições financeiras, mas carrega o risco intrínseco de inadimplência. O objetivo deste projeto é desenvolver um modelo preditivo capaz de identificar clientes com alta probabilidade de não honrar seus pagamentos.
 
-No setor bancário, a concessão de crédito é uma atividade de alto risco. Identificar corretamente clientes que podem se tornar inadimplentes é essencial para a saúde financeira da instituição.
+## 2. Resumo Executivo: Insights da EDA
+Durante a Análise Exploratória de Dados (Fase 1), identificamos pontos cruciais para a estratégia de modelagem:
+- **Desbalanceamento de Classe:** A base possui significativamente mais pagadores do que inadimplentes, exigindo o uso de técnicas como SMOTE para o treino.
+- **Qualidade dos Dados:** Detectamos outliers biológicos (ex: idade de 144 anos) e tempos de emprego irreais, tratados via técnica de *Clipping* por IQR.
+- **Correlações:** Nenhuma variável isolada explica a inadimplência, mas a combinação de variáveis como `renda_pessoa`, `taxa_juros_emprestimo` e a nova feature `comprometimento_renda` mostrou-se promissora.
 
-*   **Problema:** Prever se um cliente será inadimplente (`status_emprestimo = 1`) ou se pagará o empréstimo em dia (`status_emprestimo = 0`).
-*   **Desafio de Negócio:** Equilibrar o custo de perder uma oportunidade de lucro (Falso Positivo - rejeitar um bom pagador) contra o custo de perda direta de capital (Falso Negativo - conceder crédito a um mau pagador).
+## 3. Dicionário de Dados Atualizado
 
-## 📊 Dicionário de Dados
+| Coluna | Descrição |
+| :--- | :--- |
+| `idade_pessoa` | Idade do cliente (anos). |
+| `renda_pessoa` | Renda anual informada pelo cliente. |
+| `propriedade_casa_pessoa` | Tipo de moradia (Alugada, Própria, Hipoteca, Outros). |
+| `tempo_emprego_pessoa` | Tempo de permanência no emprego atual (anos). |
+| `intencao_emprestimo` | Motivo da solicitação do crédito. |
+| `grau_emprestimo` | Nota de risco atribuída ao empréstimo (A a G). |
+| `valor_emprestimo` | Montante total solicitado. |
+| `taxa_juros_emprestimo` | Taxa de juros aplicada ao contrato. |
+| `status_emprestimo` | **Variável Alvo** (0: Adimplente, 1: Inadimplente). |
+| `porcentagem_renda_emprestimo` | Relação entre o valor do empréstimo e a renda anual original. |
+| `inadimplencia_historico_credito` | Indica se o cliente já foi inadimplente anteriormente (Y/N). |
+| `tempo_historico_credito_pessoa` | Tempo total de histórico de crédito no mercado (anos). |
+| **`comprometimento_renda`** | **Nova Feature:** Porcentagem real da renda anual comprometida com o valor total do empréstimo. |
 
-A base de dados original foi traduzida para facilitar a análise. Abaixo estão as principais variáveis:
+## 4. Veredito do Melhor Modelo
+Após testar e otimizar os modelos de **K-Nearest Neighbors (KNN)** e **Árvore de Decisão (DT)**, chegamos às seguintes conclusões:
 
-| Coluna Original | Coluna Traduzida | Descrição |
-| :--- | :--- | :--- |
-| `person_age` | `idade_pessoa` | Idade do cliente. |
-| `person_income` | `renda_pessoa` | Renda anual do cliente. |
-| `person_home_ownership`| `propriedade_casa_pessoa` | Tipo de moradia (Alugada, Própria, etc). |
-| `person_emp_length` | `tempo_emprego_pessoa` | Tempo (em anos) de emprego. |
-| `loan_intent` | `intencao_emprestimo` | Motivo do empréstimo. |
-| `loan_grade` | `grau_emprestimo` | Nota de crédito atribuída ao empréstimo. |
-| `loan_amnt` | `valor_emprestimo` | Valor total do empréstimo solicitado. |
-| `loan_int_rate` | `taxa_juros_emprestimo` | Taxa de juros aplicada. |
-| `loan_status` | `status_emprestimo` | **Alvo:** (0: Pago, 1: Inadimplente). |
-| `cb_person_default_on_file`| `inadimplencia_historico_credito` | Histórico de inadimplência (Y/N). |
-| **Nova Coluna** | **`comprometimento_renda`** | Porcentagem da renda anual comprometida com o empréstimo. |
+- **Modelo Escolhido:** KNN (n_neighbors=9).
+- **Justificativa:** Embora a Árvore de Decisão tenha apresentado maior acurácia geral (~92.6%), o **KNN apresentou um Recall superior para a classe de inadimplentes (76%)**.
+- **Impacto Financeiro:** No negócio de crédito, o custo de um Falso Negativo (perda do capital emprestado) é substancialmente maior que o custo de um Falso Positivo. O KNN minimiza a perda direta ao identificar um volume maior de potenciais inadimplentes, protegendo o caixa da instituição.
 
-## 🛠️ Desenvolvimento do Pipeline
-
-O projeto foi dividido em 6 fases rigorosas:
-
-1.  **EDA (Análise Exploratória):** Identificamos um desbalanceamento severo (apenas 21.8% de inadimplentes) e a presença de outliers críticos (idades de 144 anos).
-2.  **Data Prep:** Remoção de duplicatas e imputação de valores nulos pela **mediana** (para mitigar o impacto de outliers). Aplicamos **Clipping via IQR** para limitar valores extremos.
-3.  **Feature Engineering:** Criação da métrica `comprometimento_renda`, fundamental para entender a capacidade de pagamento.
-4.  **Preparação Segura:** 
-    *   **Encoding:** One-Hot Encoding para categorias e Label Encoding para binários.
-    *   **Split:** 80/20 com estratificação.
-    *   **Balanceamento:** Uso de **SMOTE** aplicado exclusivamente nos dados de treino.
-    *   **Escalonamento:** `StandardScaler` aplicado apenas para o KNN (sensível a escala).
-5.  **Validação e Overfitting:** Testamos múltiplos valores de `K` (KNN) e `max_depth` (Árvore). Monitoramos métricas de treino e teste para garantir a generalização do modelo.
-6.  **Avaliação:** Uso de Relatórios de Classificação e Matrizes de Confusão para análise de erros.
-
-## 📈 Resumo Executivo e Veredito
-
-### Principais Insights da EDA:
-*   A **Taxa de Juros** tem uma correlação positiva forte com o risco de inadimplência.
-*   Clientes com renda mais baixa e alto valor de empréstimo (alto comprometimento) tendem a falhar no pagamento com mais frequência.
-*   O desbalanceamento inicial da base exigiu o uso de SMOTE para evitar que o modelo ficasse "viciado" na classe majoritária.
-
-### Veredito Final:
-Embora a **Árvore de Decisão (`max_depth=7`)** tenha apresentado uma precisão altíssima (0.97), o modelo selecionado para produção foi o **KNN (`n_neighbors=9`)**.
-
-**Justificativa:** No setor bancário, o **Falso Negativo** (não detectar um inadimplente) é o erro mais caro, pois resulta na perda direta de capital. O KNN apresentou um **Recall superior (0.76)** para a classe de inadimplentes em comparação à Árvore de Decisão, minimizando as perdas financeiras críticas para a instituição, apesar de um número maior de Falsos Positivos.
-
----
-**Desenvolvido por:** Rafael dos Santos Cunha
-
-**Tecnologias:** Python, Pandas, Scikit-Learn, Imbalanced-Learn, Seaborn.
+## 5. Tecnologias Utilizadas
+- Python, Pandas, Matplotlib, Seaborn.
+- Scikit-Learn (StandardScaler, OneHotEncoder, KNN, DecisionTree).
+- Imbalanced-learn (SMOTE).
